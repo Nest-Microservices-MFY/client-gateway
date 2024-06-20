@@ -12,15 +12,13 @@ import {
 } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { PRODUCT_SERVICE } from '../config';
+import { NATS_SERVICE } from '../config';
 import { PaginationDto } from '../common/dto';
 import { CreateProductDto, UpdateProductDto } from './dto';
 
 @Controller('products')
 export class ProductsController {
-  constructor(
-    @Inject(PRODUCT_SERVICE) private readonly productsClient: ClientProxy,
-  ) {}
+  constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
 
   /**
    *
@@ -31,10 +29,7 @@ export class ProductsController {
   async createProduct(@Body() createProductDto: CreateProductDto) {
     try {
       return await firstValueFrom(
-        this.productsClient.send(
-          { cmd: 'create_product' },
-          { ...createProductDto },
-        ),
+        this.client.send({ cmd: 'create_product' }, { ...createProductDto }),
       );
     } catch (error) {
       throw new RpcException(error);
@@ -50,7 +45,7 @@ export class ProductsController {
   async findAllProducts(@Query() paginationDto: PaginationDto) {
     try {
       return await firstValueFrom(
-        this.productsClient.send({ cmd: 'find_all_products' }, paginationDto),
+        this.client.send({ cmd: 'find_all_products' }, paginationDto),
       );
     } catch (error) {
       throw new RpcException(error);
@@ -66,10 +61,7 @@ export class ProductsController {
   async findAllDeletedProducts(@Query() paginationDto: PaginationDto) {
     try {
       return await firstValueFrom(
-        this.productsClient.send(
-          { cmd: 'find_all_products_deleted' },
-          paginationDto,
-        ),
+        this.client.send({ cmd: 'find_all_products_deleted' }, paginationDto),
       );
     } catch (error) {}
   }
@@ -83,7 +75,7 @@ export class ProductsController {
   async findOneProduct(@Param('id', ParseIntPipe) id: number) {
     try {
       const product = await firstValueFrom(
-        this.productsClient.send({ cmd: 'find_product_by_id' }, { id: id }),
+        this.client.send({ cmd: 'find_product_by_id' }, { id: id }),
       );
       return product;
     } catch (error) {
@@ -103,7 +95,7 @@ export class ProductsController {
   ) {
     try {
       return await firstValueFrom(
-        this.productsClient.send(
+        this.client.send(
           { cmd: 'update_product' },
           { ...updateProductDto, id: +id },
         ),
@@ -122,7 +114,7 @@ export class ProductsController {
   async removeProduct(@Param('id', ParseIntPipe) id: number) {
     try {
       return await firstValueFrom(
-        this.productsClient.send({ cmd: 'delete_product' }, { id: id }),
+        this.client.send({ cmd: 'delete_product' }, { id: id }),
       );
     } catch (error) {
       throw new RpcException(error);
