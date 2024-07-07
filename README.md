@@ -16,3 +16,11 @@
      ```
 
 5. Ejecutar `npm run start:dev`
+
+## Prod
+
+Ejecutar
+
+```bash
+docker build -f dockerfile.prod -t tag-name .
+```
